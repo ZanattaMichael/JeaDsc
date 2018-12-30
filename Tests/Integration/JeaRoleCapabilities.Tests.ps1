@@ -209,6 +209,10 @@ Describe "Integration testing JeaRoleCapabilities" -Tag Integration {
 
             $results.VisibleCmdlets | Should -Be 'Get-Service'
         }
+
+        It "Should return true when Test-DscConfiguration is called" {
+            Test-DscConfiguration | Should -Be $true
+        }
     }
 
     Context "Testing Applying WildcardVisibleCmdlets Configuration File" {
@@ -233,6 +237,10 @@ Describe "Integration testing JeaRoleCapabilities" -Tag Integration {
             $results = Import-PowerShellDataFile -Path 'TestDrive:\WildcardVisibleCmdlets\RoleCapabilities\WildcardVisibleCmdlets.psrc'
 
             $results.VisibleCmdlets | Should -Be 'Get-*','DnsServer\*'
+        }
+
+        It "Should return true when Test-DscConfiguration is called" {
+            Test-DscConfiguration | Should -Be $true
         }
     }
 
@@ -260,6 +268,10 @@ Describe "Integration testing JeaRoleCapabilities" -Tag Integration {
             $results.FunctionDefinitions.Name | Should -Be 'Get-ExampleData'
             $results.FunctionDefinitions.ScriptBlock | Should -Be '{Get-Command}'
             $results.FunctionDefinitions.ScriptBlock | Should -BeOfType [ScriptBlock]
+        }
+
+        It "Should return true when Test-DscConfiguration is called" {
+            Test-DscConfiguration | Should -Be $true
         }
     }
 
