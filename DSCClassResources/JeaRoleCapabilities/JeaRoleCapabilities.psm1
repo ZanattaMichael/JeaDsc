@@ -117,19 +117,24 @@ class JeaRoleCapabilities {
     [JeaRoleCapabilities] Get() {
         $CurrentState = [JeaRoleCapabilities]::new()
         $CurrentState.Path = $this.Path
+        Write-Verbose -Message "Checking for existing PSRC file."
         if (Test-Path -Path $this.Path) {
+            Write-Verbose -Message "Found existing PSRC file, getting current settings."
             $CurrentStateFile = Import-PowerShellDataFile -Path $this.Path
 
-            'Copyright', 'GUID', 'Author', 'CompanyName' | Foreach-Object {
+            Write-Verbose -Message "Removing automatically set properties"
+            'Copyright', 'GUID', 'Author', 'CompanyName' | ForEach-Object {
                 $CurrentStateFile.Remove($_)
             }
 
+            Write-Verbose -Message "Converting hashtable of existing settings to  JeaRoleCapabilities type"
             foreach ($Property in $CurrentStateFile.Keys) {
                 $CurrentState.$Property = $CurrentStateFile[$Property]
             }
             $CurrentState.Ensure = [Ensure]::Present
         }
         else {
+            Write-Verbose -Message "No PSRC file found, returning an empty object with Ensure set to Absent"
             $CurrentState.Ensure = [Ensure]::Absent
         }
         return $CurrentState
@@ -141,10 +146,12 @@ class JeaRoleCapabilities {
             $Parameters = Convert-ObjectToHashtable($this)
             $Parameters.Remove('Ensure')
 
-            Foreach ($Parameter in $Parameters.Keys.Where( {$Parameters[$_] -match '@{'})) {
+            Write-Verbose -Message "Converting strings of settings to normal PS objects"
+            Foreach ($Parameter in $Parameters.Keys.Where( { $Parameters[$_] -match '@{' })) {
                 $Parameters[$Parameter] = Convert-StringToObject -InputString $Parameters[$Parameter]
             }
 
+            Write-Verbose -Message "Ensuring all custom function definitions are also defined in VisibleFunctions"
             if ($Parameters.ContainsKey('FunctionDefinitions')) {
                 foreach ($FunctionDefName in $Parameters['FunctionDefinitions'].Name) {
                     if ($FunctionDefName -notin $Parameters['VisibleFunctions']) {
@@ -152,11 +159,14 @@ class JeaRoleCapabilities {
                     }
                 }
             }
+
+            Write-Verbose -Message "Creating PSRC file with specified setings"
             $null = New-Item -Path $this.Path -ItemType File -Force
 
             New-PSRoleCapabilityFile @Parameters
         }
         elseif ($this.Ensure -eq [Ensure]::Absent -and (Test-Path -Path $this.Path)) {
+            Write-Verbose -Message "Found PSRC file but Ensure set to Absent, removing the file at $($this.Path)"
             Remove-Item -Path $this.Path -Confirm:$False
         }
 
@@ -168,28 +178,35 @@ class JeaRoleCapabilities {
             return $false
         }
         if ($this.Ensure -eq [Ensure]::Present -and -not (Test-Path -Path $this.Path)) {
+            Write-Verbose -Message "PSRC file does not exist but should. Returning false"
             return $false
         }
         elseif ($this.Ensure -eq [Ensure]::Present -and (Test-Path -Path $this.Path)) {
+            Write-Verbose -Message "PSRC file exists, comparing with specified settings."
             $CurrentState = Convert-ObjectToHashtable -Object $this.Get()
 
             $Parameters = Convert-ObjectToHashtable -Object $this
             $Compare = Compare-JeaConfiguration -ReferenceObject $CurrentState -DifferenceObject $Parameters
 
             if ($null -eq $Compare) {
+                Write-Verbose -Message "PSRC file matches specified settings, returning true"
                 return $true
             }
             else {
+                Write-Verbose -Message "PSRC file does not match specified settings, returning false"
                 return $false
             }
         }
         elseif ($this.Ensure -eq [Ensure]::Absent -and (Test-Path -Path $this.Path)) {
+            Write-Verbose -Message "PSRC file exists but shouldn't, returning false"
             return $false
         }
         elseif ($this.Ensure -eq [Ensure]::Absent -and -not (Test-Path -Path $this.Path)) {
+            Write-Verbose -Message "PSRC file does not exist, returning true."
             return $true
         }
 
+        Write-Verbose -Message "Didn't retun anything from other checks, returning false"
         return $false
     }
 }
@@ -205,9 +222,9 @@ function Convert-StringToObject {
     $AST = [Parser]::ParseInput($FakeCommand, [ref]$null, [ref]$ParseErrors)
     if (-not $ParseErrors) {
         # Use Ast.Find() to locate the CommandAst parsed from our fake command
-        $CmdAst = $AST.Find( {param($ChildAst) $ChildAst -is [CommandAst]}, $false)
+        $CmdAst = $AST.Find( { param($ChildAst) $ChildAst -is [CommandAst] }, $false)
         # Grab the user-supplied arguments (index 0 is the command name, 1 is our fake parameter)
-        $AllArgumentAst = $CmdAst.CommandElements.Where( {$_ -isnot [CommandParameterAst] -and $_.Value -ne 'Totally-NotACmdlet'})
+        $AllArgumentAst = $CmdAst.CommandElements.Where( { $_ -isnot [CommandParameterAst] -and $_.Value -ne 'Totally-NotACmdlet' })
         foreach ($ArgumentAst in $AllArgumentAst) {
             if ($ArgumentAst -is [ArrayLiteralAst]) {
                 # Argument was a list
