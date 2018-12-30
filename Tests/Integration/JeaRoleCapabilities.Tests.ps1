@@ -210,7 +210,7 @@ Describe "Integration testing JeaRoleCapabilities" -Tag Integration {
             $results.VisibleCmdlets | Should -Be 'Get-Service'
         }
 
-        It "Should return true when Test-DscConfiguration is called" {
+        It "Should return true when Test-DscConfiguration is called" -Skip:$BuildBox {
             Test-DscConfiguration | Should -Be $true
         }
     }
@@ -239,7 +239,7 @@ Describe "Integration testing JeaRoleCapabilities" -Tag Integration {
             $results.VisibleCmdlets | Should -Be 'Get-*','DnsServer\*'
         }
 
-        It "Should return true when Test-DscConfiguration is called" {
+        It "Should return true when Test-DscConfiguration is called" -Skip:$BuildBox {
             Test-DscConfiguration | Should -Be $true
         }
     }
@@ -270,7 +270,7 @@ Describe "Integration testing JeaRoleCapabilities" -Tag Integration {
             $results.FunctionDefinitions.ScriptBlock | Should -BeOfType [ScriptBlock]
         }
 
-        It "Should return true when Test-DscConfiguration is called" {
+        It "Should return true when Test-DscConfiguration is called" -Skip:$BuildBox {
             Test-DscConfiguration | Should -Be $true
         }
     }
