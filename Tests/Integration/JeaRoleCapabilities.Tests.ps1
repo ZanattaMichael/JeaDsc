@@ -7,7 +7,7 @@ Describe "Integration testing JeaRoleCapabilities" -Tag Integration {
         $OldPsModulePath = $Env:PSModulePath
         $Env:PSModulePath += ";$ModulePath"
         [Environment]::SetEnvironmentVariable('PSModulePath',$Env:PSModulePath,[EnvironmentVariableTarget]::Machine)
-        $Env:PSModulePath += ";TestDrive:\"
+        $Env:PSModulePath += ";TestDrive:\;$((Get-Item TestDrive:\).FullName)"
 
         $BuildBox = $true
         if ($Env:SYSTEM_DEFAULTWORKINGDIRECTORY) {
