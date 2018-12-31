@@ -215,7 +215,7 @@ Describe "Integration testing JeaRoleCapabilities" -Tag Integration {
         }
 
         It "Should return true when Test-DscConfiguration is called" -Skip:$BuildBox {
-            Test-DscConfiguration | Should -Be $true
+            (Test-DscConfiguration -Detailed).InDesiredState | Should -Be $true
         }
     }
 
@@ -244,7 +244,7 @@ Describe "Integration testing JeaRoleCapabilities" -Tag Integration {
         }
 
         It "Should return true when Test-DscConfiguration is called" -Skip:$BuildBox {
-            Test-DscConfiguration | Should -Be $true
+            (Test-DscConfiguration -Detailed).InDesiredState | Should -Be $true
         }
     }
 
@@ -275,7 +275,7 @@ Describe "Integration testing JeaRoleCapabilities" -Tag Integration {
         }
 
         It "Should return true when Test-DscConfiguration is called" -Skip:$BuildBox {
-            Test-DscConfiguration | Should -Be $true
+            (Test-DscConfiguration -Detailed).InDesiredState | Should -Be $true
         }
     }
 
@@ -310,7 +310,7 @@ Describe "Integration testing JeaRoleCapabilities" -Tag Integration {
         }
 
         It "Should return true when Test-DscConfiguration is called" -Skip:$BuildBox {
-            Test-DscConfiguration | Should -Be $true
+            (Test-DscConfiguration -Detailed).InDesiredState | Should -Be $true
         }
     }
 
