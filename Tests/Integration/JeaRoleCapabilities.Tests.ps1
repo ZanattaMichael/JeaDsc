@@ -18,6 +18,10 @@ Describe "Integration testing JeaRoleCapabilities" -Tag Integration {
 
     AfterAll {
         [Environment]::SetEnvironmentVariable('PSModulePath',$OldPsModulePath,[EnvironmentVariableTarget]::Machine)
+        Stop-DscConfiguration -Force
+        Remove-DscConfigurationDocument -Stage Pending -Force
+        Remove-DscConfigurationDocument -Stage Current -Force
+        Remove-DscConfigurationDocument -Stage Previous -Force
     }
 
     BeforeEach {
