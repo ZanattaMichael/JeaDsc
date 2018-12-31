@@ -275,6 +275,41 @@ Describe "Integration testing JeaRoleCapabilities" -Tag Integration {
         }
     }
 
+    Context "Testing Applying MultipleFunctionDefinitions Configuration File" {
+
+        It "Should apply the example MultipleFunctionDefinitions configuration without throwing" -Skip:$BuildBox {
+            $ConfigFile = Join-Path -Path $PSScriptRoot -ChildPath 'TestConfigurations\MultipleFunctionDefinitions.config.ps1'
+            . $ConfigFile
+
+            $MofOutputFolder = 'TestDrive:\Configurations\MultipleFunctionDefinitions'
+            $PsrcPath = Join-Path (Get-Item TestDrive:\).FullName -ChildPath 'MultipleFunctionDefinitions\RoleCapabilities\MultipleFunctionDefinitions.psrc'
+            &MultipleFunctionDefinitions -OutputPath $MofOutputFolder -Path $PsrcPath
+            { Start-DscConfiguration -Path $MofOutputFolder -Wait -Force } | Should -Not -Throw
+        }
+
+        It "Should be able to call Get-DscConfiguration without throwing" -Skip:$BuildBox {
+            { Get-DscConfiguration -ErrorAction Stop } | Should -Not -Throw
+        }
+
+        It "Should have created the psrc file and set the multiple FunctionDefinitions and VisibleFunctions to Test and GD" -Skip:$BuildBox {
+            Test-Path -Path 'TestDrive:\MultipleFunctionDefinitions\RoleCapabilities\MultipleFunctionDefinitions.psrc' | Should -Be $true
+
+            $results = Import-PowerShellDataFile -Path 'TestDrive:\MultipleFunctionDefinitions\RoleCapabilities\MultipleFunctionDefinitions.psrc'
+
+            $results.FunctionDefinitions[0].Name | Should -Be 'Test'
+            $results.FunctionDefinitions[0].ScriptBlock | Should -Be '{ Test-DscConfiguration -Detailed }'
+            $results.FunctionDefinitions[0].ScriptBlock | Should -BeOfType [ScriptBlock]
+            $results.FunctionDefinitions[1].Name | Should -Be 'GD'
+            $results.FunctionDefinitions[1].ScriptBlock | Should -Be '{ Get-Date }'
+            $results.FunctionDefinitions[1].ScriptBlock | Should -BeOfType [ScriptBlock]
+
+        }
+
+        It "Should return true when Test-DscConfiguration is called" -Skip:$BuildBox {
+            Test-DscConfiguration | Should -Be $true
+        }
+    }
+
     Context "Testing Applying FailingFunctionDefinitions Configuration File" {
 
         It "Should throw when attempting to apply the example FunctionDefinitions configuration" -Skip:$BuildBox {
