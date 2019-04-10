@@ -5,19 +5,19 @@ Describe "Integration testing JeaRoleCapabilities" -Tag Integration {
     BeforeAll {
         $ModulePath = Resolve-Path -Path $PSScriptRoot\..\..\..\
         $OldPsModulePath = $Env:PSModulePath
-        $Env:PSModulePath += ";$ModulePath"
-        [Environment]::SetEnvironmentVariable('PSModulePath',$Env:PSModulePath,[EnvironmentVariableTarget]::Machine)
-        $Env:PSModulePath += ";TestDrive:\;$((Get-Item TestDrive:\).FullName)"
+        $Env:PSModulePath = "$ModulePath;$((Get-Item TestDrive:\).FullName);$Env:PSModulePath"
+        [Environment]::SetEnvironmentVariable('PSModulePath', $Env:PSModulePath, [EnvironmentVariableTarget]::Machine)
+        $Env:PSModulePath = "TestDrive:\;$Env:PSModulePath"
 
         $BuildBox = $true
         if ($Env:SYSTEM_DEFAULTWORKINGDIRECTORY) {
-            &winrm quickconfig -quiet -force
+            &winrm.cmd quickconfig -quiet -force
             $BuildBox = $false
         }
     }
 
     AfterAll {
-        [Environment]::SetEnvironmentVariable('PSModulePath',$OldPsModulePath,[EnvironmentVariableTarget]::Machine)
+        [Environment]::SetEnvironmentVariable('PSModulePath', $OldPsModulePath, [EnvironmentVariableTarget]::Machine)
         Stop-DscConfiguration -Force
         Remove-DscConfigurationDocument -Stage Pending -Force
         Remove-DscConfigurationDocument -Stage Current -Force
@@ -160,13 +160,13 @@ Describe "Integration testing JeaRoleCapabilities" -Tag Integration {
         }
 
         It "Should create a psrc with 2 function definitions and 2 visible function for those custom function" {
-            $class.FunctionDefinitions = "@{Name = 'Get-ExampleFunction'; ScriptBlock = {Get-Command} }","@{Name = 'Get-OtherExample'; ScriptBlock = {Get-Command} }"
-            $class.VisibleFunctions = 'Get-ExampleFunction','Get-OtherExample'
+            $class.FunctionDefinitions = "@{Name = 'Get-ExampleFunction'; ScriptBlock = {Get-Command} }", "@{Name = 'Get-OtherExample'; ScriptBlock = {Get-Command} }"
+            $class.VisibleFunctions = 'Get-ExampleFunction', 'Get-OtherExample'
             $class.Set()
 
             Test-Path -Path $class.Path | Should -Be $true
             $result = Import-PowerShellDataFile -Path $class.Path
-            $result.VisibleFunctions | Should -Be 'Get-ExampleFunction','Get-OtherExample'
+            $result.VisibleFunctions | Should -Be 'Get-ExampleFunction', 'Get-OtherExample'
             $result.FunctionDefinitions[0].Name | Should -Be 'Get-ExampleFunction'
             $result.FunctionDefinitions[0].Scriptblock | Should -Be '{Get-Command}'
             $result.FunctionDefinitions[0].Scriptblock | Should -BeOfType [ScriptBlock]
@@ -240,7 +240,7 @@ Describe "Integration testing JeaRoleCapabilities" -Tag Integration {
 
             $results = Import-PowerShellDataFile -Path 'TestDrive:\WildcardVisibleCmdlets\RoleCapabilities\WildcardVisibleCmdlets.psrc'
 
-            $results.VisibleCmdlets | Should -Be 'Get-*','DnsServer\*'
+            $results.VisibleCmdlets | Should -Be 'Get-*', 'DnsServer\*'
         }
 
         It "Should return true when Test-DscConfiguration is called" -Skip:$BuildBox {
