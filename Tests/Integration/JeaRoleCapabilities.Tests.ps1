@@ -272,7 +272,7 @@ Describe "Integration testing JeaRoleCapabilities" -Tag Integration {
             $MofOutputFolder = 'TestDrive:\Configurations\FailingFunctionDefinitions'
             $PsrcPath = Join-Path (Get-Item TestDrive:\).FullName -ChildPath 'FailingFunctionDefinitions\RoleCapabilities\FailingFunctionDefinitions.psrc'
             &FailingFunctionDefinitions -OutputPath $MofOutputFolder -Path $PsrcPath
-            { Start-DscConfiguration -Path $MofOutputFolder -Wait -Force -ErrorAction Stop } | Should -Throw
+            { Start-DscConfiguration -Path $MofOutputFolder -Wait -Force -ErrorAction Stop } | Should -Throw "Function defined but not visible to Role Configuration: Get-ExampleData"
         }
 
         It "Should not have created the psrc file" -Skip:$BuildBox {
