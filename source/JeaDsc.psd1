@@ -21,7 +21,9 @@
         'DSCClassResources\JeaRoleCapabilities\JeaRoleCapabilities.psd1'
     )
 
-    FunctionsToExport    = @()
+    FunctionsToExport    = @(
+        'ConvertTo-Expression'
+    )
 
     CmdletsToExport      = @()
 
