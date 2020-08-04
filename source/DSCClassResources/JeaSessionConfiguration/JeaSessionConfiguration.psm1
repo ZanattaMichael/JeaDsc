@@ -26,11 +26,11 @@ class JeaSessionConfiguration
     [DscProperty(Key)]
     [string] $Name = 'Microsoft.PowerShell'
 
-    ## The mandatory role definition map to be used for the endpoint. This
+    ## The role definition map to be used for the endpoint. This
     ## should be a string that represents the Hashtable used for the RoleDefinitions
     ## property in New-PSSessionConfigurationFile, such as:
     ## RoleDefinitions = '@{ Everyone = @{ RoleCapabilities = "BaseJeaCapabilities" } }'
-    [Dscproperty(Mandatory)]
+    [Dscproperty()]
     [string] $RoleDefinitions
 
     ## run the endpoint under a Virtual Account
@@ -270,7 +270,7 @@ class JeaSessionConfiguration
             }
         }
 
-        $compare = Test-DscParameterState2 -CurrentValues $currentState -DesiredValues $parameters -TurnOffTypeChecking -SortArrayValues -ReverseCheck
+        $compare = Test-DscParameterState -CurrentValues $currentState -DesiredValues $parameters -TurnOffTypeChecking -SortArrayValues -ReverseCheck
 
         return $compare
     }
