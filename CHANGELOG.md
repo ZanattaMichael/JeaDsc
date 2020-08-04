@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - Renamed 'Test-DscParameterState' to 'Test-DscParameterState2' for a conflict with 'DscResource.Common'.
+- Removing functions provided by 'DscResource.Common'
+- Making property 'RoleDefinitions' non-mandatory
+- Replacing 'New-PSRoleCapabilityFile' by writing the file directly
+- Making 'ConvertTo-Expression' visible as it is required also from the outside
 
 ### Added
 
