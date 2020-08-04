@@ -6,12 +6,10 @@ enum Ensure
 
 $modulePath = Join-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -ChildPath 'Modules'
 
-# Import the JeaDsc Common Module
-Import-Module -Name (Join-Path -Path $modulePath `
-        -ChildPath (Join-Path -Path 'JeaDsc.Common' `
-            -ChildPath 'JeaDsc.Common.psm1'))
+Import-Module -Name (Join-Path -Path $modulePath -ChildPath DscResource.Common)
+Import-Module -Name (Join-Path -Path $modulePath -ChildPath (Join-Path -Path JeaDsc.Common -ChildPath JeaDsc.Common.psm1))
 
-Import-Module -Name (Join-Path -Path $modulePath -ChildPath 'DscResource.Common')
+$script:localizedData = Get-LocalizedData -DefaultUICulture en-US
 
 [DscResource()]
 class JeaRoleCapabilities
