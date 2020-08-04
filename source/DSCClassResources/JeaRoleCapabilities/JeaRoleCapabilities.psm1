@@ -202,7 +202,11 @@ class JeaRoleCapabilities
             {
                 $parentPath = Split-Path -Path $parameters.Path -Parent
                 mkdir -Path $parentPath -Force
-                New-PSRoleCapabilityFile @parameters
+
+                $fPath = $parameters.Path
+                $parameters.Remove('Path')
+                $content = $parameters | ConvertTo-Expression
+                $content | Set-Content -Path $fPath -Force
             }
         }
         elseif ($this.Ensure -eq [Ensure]::Absent -and (Test-Path -Path $this.Path))
@@ -241,11 +245,10 @@ class JeaRoleCapabilities
                 {
                     $parameters."$($p)" = $parameters."$($p)" | Convert-StringToObject
                     $currentState."$($p)" = $currentState."$($p)" | Convert-StringToObject
-
                 }
             }
 
-            $compare = Test-DscParameterState2 -CurrentValues $currentState -DesiredValues $Parameters -SortArrayValues -TurnOffTypeChecking -ReverseCheck
+            $compare = Test-DscParameterState -CurrentValues $currentState -DesiredValues $Parameters -SortArrayValues -TurnOffTypeChecking -ReverseCheck
 
             return $compare
         }
