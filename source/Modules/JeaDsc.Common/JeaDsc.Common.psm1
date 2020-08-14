@@ -613,6 +613,14 @@ function Convert-StringToObject
             $parseErrors = @()
             $fakeCommand = "Totally-NotACmdlet -Fakeparameter $string"
             $ast = [Parser]::ParseInput($fakeCommand, [ref]$null, [ref]$parseErrors)
+
+            $pattern = ',(?<ArrayElements>.+)'
+            if (($parseErrors | Where-Object ErrorId -eq MissingArgument) -and $string -match $pattern)
+            {
+                $fakeCommand = "Totally-NotACmdlet -Fakeparameter $($Matches.ArrayElements)"
+                $ast = [Parser]::ParseInput($fakeCommand, [ref]$null, [ref]$parseErrors)
+            }
+
             if (-not $parseErrors)
             {
                 # Use Ast.Find() to locate the CommandAst parsed from our fake command
@@ -626,8 +634,8 @@ function Convert-StringToObject
                     , $false
                 )
                 # Grab the user-supplied arguments (index 0 is the command name, 1 is our fake parameter)
-                $allArgumentAst = $cmdAst.CommandElements.Where( { $_ -isnot [CommandparameterAst] -and $_.Value -ne 'Totally-NotACmdlet' })
-                foreach ($argumentAst in $allArgumentAst)
+                $argumentAsts = $cmdAst.CommandElements.Where( { $_ -isnot [CommandparameterAst] -and $_.Value -ne 'Totally-NotACmdlet' })
+                foreach ($argumentAst in $argumentAsts)
                 {
                     if ($argumentAst -is [ArrayLiteralAst])
                     {
