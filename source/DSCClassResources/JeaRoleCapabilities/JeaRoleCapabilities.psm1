@@ -174,20 +174,20 @@ class JeaRoleCapabilities
 
         if ($this.Ensure -eq [Ensure]::Present)
         {
-            $parameters = Convert-ObjectToHashtable -Object $this
+            $desiredState = Convert-ObjectToHashtable -Object $this
 
-            foreach ($parameter in $parameters.Keys.Where( { $parameters[$_] -match '@{' }))
+            foreach ($parameter in $desiredState.Keys.Where( { $desiredState[$_] -match '@{' }))
             {
-                $parameters[$parameter] = Convert-StringToObject -InputString $parameters[$parameter]
+                $desiredState[$parameter] = Convert-StringToObject -InputString $desiredState[$parameter]
             }
 
-            $parameters = Sync-Parameter -Command (Get-Command -Name New-PSRoleCapabilityFile) -Parameters $parameters
+            $desiredState = Sync-Parameter -Command (Get-Command -Name New-PSRoleCapabilityFile) -Parameters $desiredState
 
-            if ($parameters.ContainsKey('FunctionDefinitions'))
+            if ($desiredState.ContainsKey('FunctionDefinitions'))
             {
-                foreach ($functionDefinitionName in $Parameters['FunctionDefinitions'].Name)
+                foreach ($functionDefinitionName in $desiredState['FunctionDefinitions'].Name)
                 {
-                    if ($functionDefinitionName -notin $Parameters['VisibleFunctions'])
+                    if ($functionDefinitionName -notin $desiredState['VisibleFunctions'])
                     {
                         Write-Verbose -"Function defined but not visible to Role Configuration: $functionDefinitionName"
                         Write-Error "Function defined but not visible to Role Configuration: $functionDefinitionName"
@@ -198,12 +198,12 @@ class JeaRoleCapabilities
 
             if (-not $invalidConfiguration)
             {
-                $parentPath = Split-Path -Path $parameters.Path -Parent
+                $parentPath = Split-Path -Path $desiredState.Path -Parent
                 mkdir -Path $parentPath -Force
 
-                $fPath = $parameters.Path
-                $parameters.Remove('Path')
-                $content = $parameters | ConvertTo-Expression
+                $fPath = $desiredState.Path
+                $desiredState.Remove('Path')
+                $content = $desiredState | ConvertTo-Expression
                 $content | Set-Content -Path $fPath -Force
             }
         }
@@ -229,24 +229,24 @@ class JeaRoleCapabilities
         {
 
             $currentState = Convert-ObjectToHashtable -Object $this.Get()
-            $parameters = Convert-ObjectToHashtable -Object $this
+            $desiredState = Convert-ObjectToHashtable -Object $this
 
             $cmdlet = Get-Command -Name New-PSRoleCapabilityFile
-            $parameters = Sync-Parameter -Command $cmdlet -Parameters $parameters
+            $desiredState = Sync-Parameter -Command $cmdlet -Parameters $desiredState
             $currentState = Sync-Parameter -Command $cmdlet -Parameters $currentState
             $propertiesAsObject = $cmdlet.Parameters.Keys |
-                Where-Object { $_ -in $parameters.Keys } |
+                Where-Object { $_ -in $desiredState.Keys } |
                     Where-Object { $cmdlet.Parameters.$_.ParameterType.FullName -in 'System.Collections.IDictionary', 'System.Collections.Hashtable', 'System.Collections.IDictionary[]', 'System.Object[]' }
             foreach ($p in $propertiesAsObject)
             {
                 if ($cmdlet.Parameters.$p.ParameterType.FullName -in 'System.Collections.Hashtable', 'System.Collections.IDictionary', 'System.Collections.IDictionary[]', 'System.Object[]')
                 {
-                    $parameters."$($p)" = $parameters."$($p)" | Convert-StringToObject
+                    $desiredState."$($p)" = $desiredState."$($p)" | Convert-StringToObject
                     $currentState."$($p)" = $currentState."$($p)" | Convert-StringToObject
                 }
             }
 
-            $compare = Test-DscParameterState -CurrentValues $currentState -DesiredValues $Parameters -SortArrayValues -TurnOffTypeChecking -ReverseCheck
+            $compare = Test-DscParameterState -CurrentValues $currentState -DesiredValues $desiredState -SortArrayValues -TurnOffTypeChecking -ReverseCheck
 
             return $compare
         }
