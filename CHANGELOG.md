@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replacing 'New-PSRoleCapabilityFile' by writing the file directly
 - Making 'ConvertTo-Expression' visible as it is required also from the outside
 - Renamed variable '$parameters' into '$desiredState'
+- Removing pre-release tag
 
 ### Added
 
