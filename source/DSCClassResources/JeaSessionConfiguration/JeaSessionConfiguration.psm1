@@ -6,12 +6,8 @@ enum Ensure
 
 $modulePath = Join-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -ChildPath Modules
 
-# Import the JeaDsc Common Module
-Import-Module -Name (Join-Path -Path $modulePath `
-        -ChildPath (Join-Path -Path JeaDsc.Common `
-            -ChildPath JeaDsc.Common.psm1))
-
 Import-Module -Name (Join-Path -Path $modulePath -ChildPath DscResource.Common)
+Import-Module -Name (Join-Path -Path $modulePath -ChildPath (Join-Path -Path JeaDsc.Common -ChildPath JeaDsc.Common.psm1))
 
 $script:localizedData = Get-LocalizedData -DefaultUICulture en-US
 
@@ -26,11 +22,11 @@ class JeaSessionConfiguration
     [DscProperty(Key)]
     [string] $Name = 'Microsoft.PowerShell'
 
-    ## The mandatory role definition map to be used for the endpoint. This
+    ## The role definition map to be used for the endpoint. This
     ## should be a string that represents the Hashtable used for the RoleDefinitions
     ## property in New-PSSessionConfigurationFile, such as:
     ## RoleDefinitions = '@{ Everyone = @{ RoleCapabilities = "BaseJeaCapabilities" } }'
-    [Dscproperty(Mandatory)]
+    [Dscproperty()]
     [string] $RoleDefinitions
 
     ## run the endpoint under a Virtual Account
@@ -177,14 +173,14 @@ class JeaSessionConfiguration
 
         $psscPath = Join-Path ([IO.Path]::GetTempPath()) ([IO.Path]::GetRandomFileName() + ".pssc")
         Write-Verbose "Storing PSSessionConfigurationFile in file '$psscPath'"
-        $parameters = Convert-ObjectToHashtable -Object $this
-        $parameters.Add('Path', $psscPath)
+        $desiredState = Convert-ObjectToHashtable -Object $this
+        $desiredState.Add('Path', $psscPath)
 
         if ($this.Ensure -eq [Ensure]::Present)
         {
-            foreach ($parameter in $parameters.Keys.Where( { $parameters[$_] -match '@{' }))
+            foreach ($parameter in $desiredState.Keys.Where( { $desiredState[$_] -match '@{' }))
             {
-                $parameters[$parameter] = Convert-StringToObject -InputString $parameters[$parameter]
+                $desiredState[$parameter] = Convert-StringToObject -InputString $desiredState[$parameter]
             }
         }
 
@@ -211,8 +207,8 @@ class JeaSessionConfiguration
             {
                 ## Create the configuration file
                 #New-PSSessionConfigurationFile @configurationFileArguments
-                $parameters = Sync-Parameter -Command (Get-Command -Name New-PSSessionConfigurationFile) -Parameters $parameters
-                New-PSSessionConfigurationFile @parameters
+                $desiredState = Sync-Parameter -Command (Get-Command -Name New-PSSessionConfigurationFile) -Parameters $desiredState
+                New-PSSessionConfigurationFile @desiredState
 
                 ## Register the configuration file
                 $this.RegisterPSSessionConfiguration($this.Name, $psscPath, $this.HungRegistrationTimeout)
@@ -235,12 +231,12 @@ class JeaSessionConfiguration
     [bool] Test()
     {
         $currentState = Convert-ObjectToHashtable -Object $this.Get()
-        $parameters = Convert-ObjectToHashtable -Object $this
+        $desiredState = Convert-ObjectToHashtable -Object $this
 
         # short-circuit if the resource is not present and is not supposed to be present
-        if ($currentState.Ensure -ne $parameters.Ensure)
+        if ($currentState.Ensure -ne $desiredState.Ensure)
         {
-            Write-Verbose "Desired state of session configuration named '$($currentState.Name)' is '$($parameters.Ensure)', current state is '$($currentState.Ensure)' "
+            Write-Verbose "Desired state of session configuration named '$($currentState.Name)' is '$($desiredState.Ensure)', current state is '$($currentState.Ensure)' "
             return $false
         }
         if ($this.Ensure -eq [Ensure]::Absent)
@@ -255,22 +251,22 @@ class JeaSessionConfiguration
         }
 
         $cmdlet = Get-Command -Name New-PSSessionConfigurationFile
-        $parameters = Sync-Parameter -Command $cmdlet -Parameters $parameters
+        $desiredState = Sync-Parameter -Command $cmdlet -Parameters $desiredState
         $currentState = Sync-Parameter -Command $cmdlet -Parameters $currentState
         $propertiesAsObject = $cmdlet.Parameters.Keys |
-        Where-Object { $_ -in $parameters.Keys } |
+        Where-Object { $_ -in $desiredState.Keys } |
         Where-Object { $cmdlet.Parameters.$_.ParameterType.FullName -in 'System.Collections.IDictionary', 'System.Collections.Hashtable', 'System.Collections.IDictionary[]', 'System.Object[]' }
         foreach ($p in $propertiesAsObject)
         {
             if ($cmdlet.Parameters.$p.ParameterType.FullName -in 'System.Collections.Hashtable', 'System.Collections.IDictionary', 'System.Collections.IDictionary[]', 'System.Object[]')
             {
-                $parameters."$($p)" = $parameters."$($p)" | Convert-StringToObject
+                $desiredState."$($p)" = $desiredState."$($p)" | Convert-StringToObject
                 $currentState."$($p)" = $currentState."$($p)" | Convert-StringToObject
 
             }
         }
 
-        $compare = Test-DscParameterState2 -CurrentValues $currentState -DesiredValues $parameters -TurnOffTypeChecking -SortArrayValues -ReverseCheck
+        $compare = Test-DscParameterState -CurrentValues $currentState -DesiredValues $desiredState -TurnOffTypeChecking -SortArrayValues -ReverseCheck
 
         return $compare
     }
