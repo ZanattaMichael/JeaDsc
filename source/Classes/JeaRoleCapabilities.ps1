@@ -1,18 +1,5 @@
-enum Ensure
-{
-    Present
-    Absent
-}
-
-$modulePath = Join-Path -Path (Split-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -Parent) -ChildPath 'Modules'
-
-Import-Module -Name (Join-Path -Path $modulePath -ChildPath DscResource.Common)
-Import-Module -Name (Join-Path -Path $modulePath -ChildPath (Join-Path -Path JeaDsc.Common -ChildPath JeaDsc.Common.psm1))
-
-$script:localizedData = Get-LocalizedData -DefaultUICulture en-US
-
 [DscResource()]
-class JeaRoleCapabilities
+class JeaRoleCapabilities:RoleCapabilitiesUtility
 {
 
     [DscProperty()]
@@ -97,29 +84,6 @@ class JeaRoleCapabilities
     [DscProperty()]
     [string[]]$AssembliesToLoad
 
-    hidden [boolean] ValidatePath()
-    {
-        $fileObject = [System.IO.FileInfo]::new($this.Path)
-        Write-Verbose -Message "Validating Path: $($fileObject.Fullname)"
-        Write-Verbose -Message "Checking file extension is psrc for: $($fileObject.Fullname)"
-        if ($fileObject.Extension -ne '.psrc')
-        {
-            Write-Verbose -Message "Doesn't have psrc extension for: $($fileObject.Fullname)"
-            return $false
-        }
-
-        Write-Verbose -Message "Checking parent forlder is RoleCapabilities for: $($fileObject.Fullname)"
-        if ($fileObject.Directory.Name -ne 'RoleCapabilities')
-        {
-            Write-Verbose -Message "Parent folder isn't RoleCapabilities for: $($fileObject.Fullname)"
-            return $false
-        }
-
-
-        Write-Verbose -Message 'Path is a valid psrc path. Returning true.'
-        return $true
-    }
-
     [JeaRoleCapabilities] Get()
     {
         $currentState = [JeaRoleCapabilities]::new()
@@ -189,8 +153,8 @@ class JeaRoleCapabilities
                 {
                     if ($functionDefinitionName -notin $desiredState['VisibleFunctions'])
                     {
-                        Write-Verbose -"Function defined but not visible to Role Configuration: $functionDefinitionName"
-                        Write-Error "Function defined but not visible to Role Configuration: $functionDefinitionName"
+                        Write-Verbose ($script:localizedDataRole.FunctionDefinedNotVisible -f $functionDefinitionName)
+                        Write-Error ($script:localizedDataRole.FunctionDefinedNotVisible -f $functionDefinitionName)
                         $invalidConfiguration = $true
                     }
                 }
@@ -218,7 +182,7 @@ class JeaRoleCapabilities
     {
         if (-not ($this.ValidatePath()))
         {
-            Write-Error -Message "Invalid path specified. It must point to a Module folder, be a psrc file and the parent folder must be called RoleCapabilities"
+            Write-Error -Message $script:localizedDataRole.InvalidPath
             return $false
         }
         if ($this.Ensure -eq [Ensure]::Present -and -not (Test-Path -Path $this.Path))
