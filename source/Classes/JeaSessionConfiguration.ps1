@@ -125,6 +125,17 @@ class JeaSessionConfiguration:SessionConfigurationUtility
     [Dscproperty()]
     [string[]] $AssembliesToLoad
 
+    ## The optional language mode to load
+    ## Can be 'NoLanguage' (recommended), 'RestrictedLanguage', 'ConstrainedLanguage', or 'FullLanguage' (Default)
+    [Dscproperty()]
+    [string] $LanguageMode
+
+    # The optional ExecutionPolicy
+    # Execution policy to apply when applied to a session
+    # 'Unrestricted', 'RemoteSigned', 'AllSigned', 'Restricted', 'Default', 'Bypass', 'Undefined'
+    [Dscproperty()]
+    [string] $ExecutionPolicy
+
     ## The optional number of seconds to wait for registering the endpoint to complete.
     ## 0 for no timeout
     [Dscproperty()]
