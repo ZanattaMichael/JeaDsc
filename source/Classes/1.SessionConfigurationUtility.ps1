@@ -28,13 +28,17 @@ class SessionConfigurationUtility
         return $true
     }
 
-    hidden [bool] TestWinRMService() {
+    hidden [bool] TestWinRMService()
+    {
         # Fetch the Service State
         $winRMService = Get-Service -Name 'WinRM' -ErrorAction SilentlyContinue
         # If the ServiceExists and the Status is running
-        if ($winRMService -and $winRMService.Status -eq 'Running') {
+        if ($winRMService -and $winRMService.Status -eq 'Running')
+        {
             return $true
-        } else {
+        }
+        else
+        {
             return $false
         }
     }
@@ -42,9 +46,9 @@ class SessionConfigurationUtility
     ## Get a PS Session Configuration based on its name
     hidden [object] GetPSSessionConfiguration($Name)
     {
-
         # Ensure that the WinRMService is running.
-        if (-not($this.TestWinRMService())) {
+        if (-not($this.TestWinRMService()))
+        {
             Write-Verbose -Message $script:localizedDataSession.WinRMNotRunningGetPsSession
             return $null
         }
@@ -69,9 +73,9 @@ class SessionConfigurationUtility
     ## Unregister a PS Session Configuration based on its name
     hidden [void] UnregisterPSSessionConfiguration($Name)
     {
-
         # Ensure that the WinRMService is running.
-        if (-not($this.TestWinRMService())) {
+        if (-not($this.TestWinRMService()))
+        {
             throw ($script:localizedDataSession.WinRMNotRunningUnRegisterPsSession -f $Name)
         }
 
@@ -86,9 +90,9 @@ class SessionConfigurationUtility
     ## Register a PS Session Configuration and handle a WinRM hanging situation
     hidden [Void] RegisterPSSessionConfiguration($Name, $Path, $Timeout, $AccessMode)
     {
-
         # Ensure that the WinRMService is running.
-        if (-not($this.TestWinRMService())) {
+        if (-not($this.TestWinRMService()))
+        {
             throw ($script:localizedDataSession.WinRMNotRunningRegisterPsSession -f $Name)
         }
 
