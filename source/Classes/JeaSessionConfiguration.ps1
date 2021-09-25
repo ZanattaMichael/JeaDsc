@@ -357,9 +357,7 @@ class JeaSessionConfiguration:SessionConfigurationUtility
             }
         }
 
-
-
-
         return $currentState
+
     }
 }
