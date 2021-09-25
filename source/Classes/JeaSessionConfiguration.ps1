@@ -128,7 +128,7 @@ class JeaSessionConfiguration:SessionConfigurationUtility
     ## Enables and disables the session configuration and determines whether it can be used for remote or local sessions on the computer.
     ## Values can be: Disabled, Local, Remote (Default)
     [Dscproperty()]
-    [Bool] $AccessMode = 'Remote'
+    [String] $AccessMode = 'Remote'
 
     ## The optional number of seconds to wait for registering the endpoint to complete.
     ## 0 for no timeout
@@ -259,14 +259,19 @@ class JeaSessionConfiguration:SessionConfigurationUtility
         #
         # Determine the AccessMode for the Session Configuration
 
-        # If the Session Configuration is Disabled, then it's disabled.
-        if (-not($sessionConfiguration.Enabled)) {
+        if (-not($sessionConfiguration.Enabled))
+        {
+            # If the Session Configuration is Disabled, then it's disabled.
             $currentState.AccessMode = 'Disabled'
-        # If the Session Configuration is Enabled and has a 'NT AUTHORITY\NETWORK AccessDenied' SDDL. Then it's local.
-        } elseif (($sessionConfiguration.Permission -split ', ').Where{$_ -eq 'NT AUTHORITY\NETWORK AccessDenied'}.Count -eq 1) {
+        }
+        elseif (($sessionConfiguration.Permission -split ', ').Where{$_ -eq 'NT AUTHORITY\NETWORK AccessDenied'}.Count -eq 1)
+        {
+            # If the Session Configuration is Enabled and has a 'NT AUTHORITY\NETWORK AccessDenied' SDDL. Then it's local.
             $currentState.AccessMode = 'Local'
-        # Otherwise if enabled, it's then Remote.
-        } else {
+        }
+        else
+        {
+            # Otherwise if enabled, it's then Remote.
             $currentState.AccessMode = 'Remote'
         }
 
