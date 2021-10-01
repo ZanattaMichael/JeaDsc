@@ -158,6 +158,8 @@ class JeaSessionConfiguration:SessionConfigurationUtility
             }
         }
 
+        Write-Verbose ("Set(): AccessMode: {0}" -f $this.AccessMode)
+
         ## Register the endpoint
         try
         {
@@ -226,6 +228,12 @@ class JeaSessionConfiguration:SessionConfigurationUtility
             return $false
         }
 
+        # If the AccessMode is not within desired state.
+        if ($currentState.AccessMode -ne $desiredState.AccessMode)
+        {
+            return $false
+        }
+
         $cmdlet = Get-Command -Name New-PSSessionConfigurationFile
         $desiredState = Sync-Parameter -Command $cmdlet -Parameters $desiredState
         $currentState = Sync-Parameter -Command $cmdlet -Parameters $currentState
@@ -264,14 +272,19 @@ class JeaSessionConfiguration:SessionConfigurationUtility
             # If the Session Configuration is Disabled, then it's disabled.
             $currentState.AccessMode = 'Disabled'
         }
-        elseif (($sessionConfiguration.Permission -split ', ').Where{$_ -eq 'NT AUTHORITY\NETWORK AccessDenied'}.Count -eq 1)
+        elseif (($sessionConfiguration.Permission -split ', ') -contains 'NT AUTHORITY\NETWORK AccessDenied')
         {
             # If the Session Configuration is Enabled and has a 'NT AUTHORITY\NETWORK AccessDenied' SDDL. Then it's local.
             $currentState.AccessMode = 'Local'
         }
+        elseif ([String]::IsNullOrEmpty($sessionConfiguration.Permission))
+        {
+            # It's not configured
+            $currentState.AccessMode = 'NotConfigured'
+        }
         else
         {
-            # Otherwise if enabled, it's then Remote.
+            # If permissions are present then it's Remote.
             $currentState.AccessMode = 'Remote'
         }
 

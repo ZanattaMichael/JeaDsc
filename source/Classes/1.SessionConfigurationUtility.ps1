@@ -96,7 +96,7 @@ class SessionConfigurationUtility
             throw ($script:localizedDataSession.WinRMNotRunningRegisterPsSession -f $Name)
         }
 
-        Write-Verbose -Message ($script:localizedDataSession.RegisterPSSessionConfiguration -f $Name,$Path,$Timeout)
+        Write-Verbose -Message ($script:localizedDataSession.RegisterPSSessionConfiguration -f $Name,$Path,$AccessMode,$Timeout)
         # Register-PSSessionConfiguration has been hanging because the WinRM service is stuck in Stopping state
         # therefore we need to run Register-PSSessionConfiguration within a job to allow us to handle a hanging WinRM service
 
