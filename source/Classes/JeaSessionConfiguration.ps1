@@ -267,7 +267,7 @@ class JeaSessionConfiguration:SessionConfigurationUtility
         #
         # Determine the AccessMode for the Session Configuration
 
-        if (-not($sessionConfiguration.Enabled))
+        if ($sessionConfiguration.Enabled -eq $false)
         {
             # If the Session Configuration is Disabled, then it's disabled.
             $currentState.AccessMode = 'Disabled'
