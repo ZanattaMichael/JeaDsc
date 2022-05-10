@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Adding LanguageMode and ExecutionPolicy to JeaSessionConfiguration.
 - Adding herited classes that contains helper methods.
 - Adding Reason class.
 - Adding Reasons property in JeaSessionConfiguration and JeaRoleCapabilities resources.
